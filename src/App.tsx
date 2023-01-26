@@ -1,32 +1,44 @@
-import React, { useState } from 'react'
-import logo from './logo.svg'
-import './App.css'
+import React, { useState, useEffect } from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import WebcamContext, { Image } from "./components/webcam/WebcamContext";
 
-function App() {
-  const [count, setCount] = useState(0)
+import Home from "./pages/Home";
+import Process from "./pages/Process";
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>Hello Vite + React!</p>
-        <p>
-          <button onClick={() => setCount(count => count + 1)}>count is: {count}</button>
-        </p>
-        <p>
-          Edit <code>App.tsx</code> and save to test HMR updates.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+import "./globals.scss";
+
+const App = () => {
+    const [loaded, setLoaded] = useState<boolean>(false);
+    const [image, setImage] = useState<Image>(null);
+
+    // getting the image from the local storage, siiiiii
+    useEffect(() => {
+        setImage(localStorage.getItem("screenshot"));
+        setLoaded(true);
+    }, []);
+
+    return (
+        <WebcamContext.Provider
+            value={{
+                loaded: loaded,
+                image: image,
+                setImage: (newImage) => {
+                    if (localStorage.getItem("screenshot") !== null)
+                        localStorage.removeItem("screenshot");
+                    if (typeof newImage === "string")
+                        localStorage.setItem("screenshot", newImage);
+                    setImage(newImage);
+                },
+            }}
         >
-          Learn React
-        </a>
-      </header>
-    </div>
-  )
-}
+            <BrowserRouter>
+                <Routes>
+                    <Route index element={<Home />} />
+                    <Route path={"/process"} element={<Process />} />
+                </Routes>
+            </BrowserRouter>
+        </WebcamContext.Provider>
+    );
+};
 
-export default App
+export default App;
